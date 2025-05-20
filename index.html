@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debtflix</title>
+
+  <!-- Tailwind & Font‑Awesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body class="bg-black text-white">
+  <!-- ───────── Main Layout ───────── -->
+  <div class="flex flex-col md:flex-row h-screen">
+    <!-- Left panel -->
+    <div class="md:w-2/3 w-full md:h-screen md:sticky top-0 bg-zinc-900 p-6">
+      <div class="flex justify-between items-center">
+        <h1 class="text-5xl font-extrabold text-red-600">Debtflix</h1>
+        <button id="loginBtn"
+                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm">
+          Login
+        </button>
+      </div>
+      <p class="mt-4 text-gray-300">Track who owes what, Netflix‑style.</p>
+    </div>
+
+    <!-- Right panel -->
+    <div class="md:w-1/3 w-full overflow-y-auto md:h-screen p-6 bg-zinc-800">
+      <div id="searchAdd" class="flex items-center mb-6 space-x-2">
+        <input type="text" placeholder="Search…"
+               class="bg-zinc-700 text-white placeholder-gray-400 border border-gray-600
+                      rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-red-500" />
+        <button class="bg-red-600 hover:bg-red-700 text-white rounded p-2">
+          <i class="fas fa-search"></i>
+        </button>
+        <button class="bg-red-600 hover:bg-red-700 text-white rounded p-2 add">
+          <i class="fas fa-user-plus"></i>
+        </button>
+      </div>
+
+      <!-- Friend list -->
+      <div id="friendList"></div>
+    </div>
+  </div>
+
+  <!-- ───────── Modal ───────── -->
+  <div id="addModal"
+       class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 px-4">
+    <div class="bg-zinc-900 text-white p-6 rounded shadow-xl w-full max-w-md">
+      <span class="closeModal cursor-pointer text-gray-400 float-right text-2xl hover:text-white">&times;</span>
+      <h2 class="text-3xl font-bold mb-4 text-red-500">Add Friend</h2>
+
+      <input id="friendName" type="text" placeholder="Friend's Name"
+             class="bg-zinc-800 text-white border border-gray-600 rounded p-2 w-full mb-4 placeholder-gray-400" />
+
+      <input id="friendImage" type="file" accept="image/*"
+             class="mb-4 w-full text-gray-300" />
+
+      <input id="debtAmount" type="number" placeholder="Debt Amount"
+             class="bg-zinc-800 text-white border border-gray-600 rounded p-2 w-full mb-4 placeholder-gray-400" />
+
+      <input id="amountPaid" type="number" placeholder="Amount Paid"
+             class="bg-zinc-800 text-white border border-gray-600 rounded p-2 w-full mb-4 placeholder-gray-400" />
+
+      <button id="addFriendBtn"
+              class="bg-red-600 hover:bg-red-700 text-white rounded p-2 w-full font-semibold">
+        Add Friend
+      </button>
+    </div>
+  </div>
+
+  <!-- Firebase config then main script -->
+  <script type="module" src="firebaseConfig.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
