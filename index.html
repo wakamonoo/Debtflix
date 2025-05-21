@@ -11,131 +11,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-      /* Wanted poster style with paper background */
-      .wanted-poster {
-        border: 1px solid #2c1810;
-        background-image: url("https://freedesignfile.com/upload/2018/05/Crumpled-old-paper-background-vector-01.jpg");
-        background-size: cover;
-        background-position: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        padding: 1rem;
-        text-align: center; /* Center all inner content */
-      }
-
-      /* Text styling */
-      .wanted-poster h3 {
-        font-family: "Times New Roman", serif;
-        font-weight: 700;
-        color: #2c1810;
-        margin: 0.5rem 0;
-        text-transform: uppercase;
-      }
-
-      .wanted-poster p {
-        font-family: "Courier New", monospace;
-        color: #2c1810;
-        margin: 0.2rem 0;
-        font-size: 0.9rem;
-      }
-
-      .wanted-reward {
-        font-family: "Times New Roman", serif;
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #8b0000 !important; /* Dark red for reward */
-        margin-top: 0.5rem;
-      }
-
-      .wanted-divider {
-        border-top: 1px solid #2c1810;
-        margin: 0.5rem 0;
-      }
-
-      /* Custom scrollbar hiding (for WebKit browsers like Chrome, Safari, Edge) */
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for WebKit */
-      }
-
-      /* For Firefox */
-      .hide-scrollbar {
-        scrollbar-width: none; /* Hide scrollbar for Firefox */
-      }
-
-      /* Loader styles */
-      .loader-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(
-          0,
-          0,
-          0,
-          0.7
-        ); /* Dark semi-transparent background */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 60; /* Above modals but below critical UI */
-      }
-
-      .loader {
-        border: 4px solid #f3f3f3; /* Light grey */
-        border-top: 4px solid #ef4444; /* Red */
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* Fade animation for login button text */
-      @keyframes fade-in {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      @keyframes fade-out {
-        from {
-          opacity: 1;
-        }
-        to {
-          opacity: 0;
-        }
-      }
-
-      .fade-in {
-        animation: fade-in 0.5s ease-in-out forwards;
-      }
-
-      .fade-out {
-        animation: fade-out 0.5s ease-in-out forwards;
-      }
-
-      /* Added for sticky functionality: ensure sticky element has a background */
-      /* and a z-index if overlapping is a concern */
-      .sticky-header {
-        z-index: 10; /* Ensure it stays above content when sticky */
-        background-color: inherit; /* Inherit the parent's background */
-        /* You might want to define a specific background color if the parent's background is transparent */
-        /* background-color: #27272a; */
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body class="bg-black text-white">
@@ -157,7 +33,8 @@
           </button>
         </div>
         <p class="mt-4 text-gray-300 flex-shrink-0">
-          Friends/Finance: Friendship doesn’t have to be financially awkward.
+          Because that one friend always
+          <span style="color: #dc2626">forgets</span>
         </p>
 
         <div
@@ -165,10 +42,26 @@
         >
           <div class="p-4 flex-1">
             <h2 class="text-2xl font-bold mb-4 text-red-500">Debt Overview</h2>
-            <div class="w-full max-w-sm mx-auto">
-              <canvas id="debtChart"></canvas>
+
+            <div class="w-full max-w-sm mx-auto relative">
+              <canvas
+                id="debtChart"
+                class="block"
+                style="display: none"
+              ></canvas>
+              <img
+                id="noDataImage"
+                src="images/empty-box.png"
+                alt="No Data Available"
+                class="mx-auto w-48 h-48 object-contain opacity-80 mt-8"
+                style="display: none"
+              />
             </div>
-            <div id="debtSummary" class="mt-4 text-center text-lg"></div>
+            <div
+              id="debtSummary"
+              class="mt-4 text-center text-lg text-gray-300"
+              style="display: none"
+            ></div>
           </div>
 
           <div id="mostWantedSection" class="p-4 flex-1">

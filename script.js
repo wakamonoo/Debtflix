@@ -1,4 +1,4 @@
-/* ------- Grab exports from firebaseConfig.js ------- */
+/* ───────── Grab Exports from firebaseConfig.js ───────── */
 const {
   auth,
   provider,
@@ -24,9 +24,9 @@ const {
   getDoc,
 } = window.firebaseApp;
 
-/* ------- DOM Elements ------- */
+/* ───────── DomElements ───────── */
 const loginBtn = document.getElementById("loginBtn");
-const loginTextSpan = document.getElementById("loginText"); // New span for animated text
+const loginTextSpan = document.getElementById("loginText");
 const addBtn = document.querySelector(".add");
 const modal = document.getElementById("addModal");
 const closeModalBtn = document.querySelector(".closeModal");
@@ -34,8 +34,6 @@ const addFriendBtn = document.getElementById("addFriendBtn");
 const friendListDiv = document.getElementById("friendList");
 const searchBtn = document.querySelector(".search");
 const searchInput = document.getElementById("searchInput");
-
-// Elements for Edit Modal
 const editModal = document.getElementById("editModal");
 const closeEditModalBtn = document.querySelector(".closeEditModal");
 const updateFriendBtn = document.getElementById("updateFriendBtn");
@@ -43,26 +41,16 @@ const editFriendIdInput = document.getElementById("editFriendId");
 const editFriendImageDisplay = document.getElementById(
   "editFriendImageDisplay"
 );
-
-// Elements for Chart and Summary
 const debtChartCanvas = document.getElementById("debtChart");
 const debtSummaryDiv = document.getElementById("debtSummary");
-let debtChart; // Variable to hold the Chart.js instance
-
-// Elements for Most Wanted Section
+let debtChart;
 const mostWantedListDiv = document.getElementById("mostWantedList");
 const noWantedMsg = document.getElementById("noWantedMsg");
-
-// Loader element
 const loaderOverlay = document.getElementById("loaderOverlay");
-
-// Define a default image path for friends
 const DEFAULT_FRIEND_IMAGE = "images/cat.png";
-
-// Variable to hold the interval for login text animation
 let loginTextInterval;
 
-/* ------- Loader Functions ------- */
+/* ───────── Loader ───────── */
 function showLoader() {
   loaderOverlay.classList.remove("hidden");
 }
@@ -71,10 +59,10 @@ function hideLoader() {
   loaderOverlay.classList.add("hidden");
 }
 
-/* ------- Authentication Flow ------- */
+/* ───────── Authentication Flow ───────── */
 async function doLogin() {
   try {
-    showLoader(); // Show loader during login process
+    showLoader();
     await signInWithPopup(auth, provider);
   } catch (e) {
     if (e.code === "auth/popup-blocked") {
@@ -92,17 +80,16 @@ async function doLogin() {
       });
     }
   } finally {
-    hideLoader(); // Hide loader after login attempt
+    hideLoader();
   }
 }
 
-// Function to animate login button text
 function animateLoginText(userName) {
   let showName = true;
   loginTextSpan.textContent = userName;
   loginTextSpan.classList.add("fade-in");
 
-  clearInterval(loginTextInterval); // Clear any existing interval
+  clearInterval(loginTextInterval);
 
   loginTextInterval = setInterval(() => {
     loginTextSpan.classList.remove("fade-in");
@@ -113,8 +100,8 @@ function animateLoginText(userName) {
       loginTextSpan.textContent = showName ? userName : "Loguot Here!";
       loginTextSpan.classList.remove("fade-out");
       loginTextSpan.classList.add("fade-in");
-    }, 500); // Duration of fade-out animation
-  }, 3000); // Interval for switching text (e.g., every 3 seconds)
+    }, 500);
+  }, 3000);
 }
 
 loginBtn.addEventListener("click", () => {
@@ -161,16 +148,16 @@ loginBtn.addEventListener("click", () => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    const userName = user.displayName.split(" ")[0]; // Get first name
-    animateLoginText(userName); // Start animation
-    loadFriends(); // Load friends and update chart and most wanted list
+    const userName = user.displayName.split(" ")[0];
+    animateLoginText(userName);
+    loadFriends();
   } else {
-    clearInterval(loginTextInterval); // Stop animation
-    loginTextSpan.textContent = "Login"; // Reset text
-    loginTextSpan.classList.remove("fade-in", "fade-out"); // Remove animation classes
+    clearInterval(loginTextInterval);
+    loginTextSpan.textContent = "Login";
+    loginTextSpan.classList.remove("fade-in", "fade-out");
     friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">Please log in to see your Debtflix friends.</p>`;
-    renderDebtChart(0, 0); // Clear chart when logged out
-    renderMostWanted([]); // Clear most wanted list
+    renderDebtChart(0, 0);
+    renderMostWanted([]);
   }
 });
 
@@ -180,7 +167,7 @@ getRedirectResult(auth).catch((err) => {
   }
 });
 
-/* ------- Modal Handling ------- */
+/* ───────── Modal Handling ───────── */
 addBtn.onclick = () => modal.classList.remove("hidden");
 closeModalBtn.onclick = () => modal.classList.add("hidden");
 modal.onclick = (e) => {
@@ -192,7 +179,7 @@ editModal.onclick = (e) => {
   if (e.target === editModal) editModal.classList.add("hidden");
 };
 
-/* ------- Search Functionality ------- */
+/* ───────── Search ───────── */
 searchBtn.addEventListener("click", () => {
   const val = searchInput.value.trim();
   loadFriends(val);
@@ -207,7 +194,7 @@ searchInput.addEventListener("input", () => {
   }, 300);
 });
 
-/* ------- Add Friend ------- */
+/* ───────── Add Friend ───────── */
 addFriendBtn.onclick = async () => {
   if (!auth.currentUser) {
     Swal.fire({
@@ -242,7 +229,7 @@ addFriendBtn.onclick = async () => {
   }
 
   try {
-    showLoader(); // Show loader while adding
+    showLoader();
     await addDoc(collection(db, "friends"), {
       uid: auth.currentUser.uid,
       name,
@@ -261,7 +248,7 @@ addFriendBtn.onclick = async () => {
     document.getElementById("notes").value = "";
 
     modal.classList.add("hidden");
-    loadFriends(); // Refresh list, chart, and most wanted
+    loadFriends();
 
     Swal.fire({
       icon: "success",
@@ -288,11 +275,11 @@ addFriendBtn.onclick = async () => {
       confirmButtonColor: "#dc2626",
     });
   } finally {
-    hideLoader(); // Hide loader after adding attempt
+    hideLoader();
   }
 };
 
-/* ------- Edit Friend ------- */
+/* ───────── Edit Friend ───────── */
 window.editFriend = async (friendId) => {
   if (!auth.currentUser) {
     Swal.fire({
@@ -314,7 +301,7 @@ window.editFriend = async (friendId) => {
   const editNotesInput = document.getElementById("editNotes");
 
   try {
-    showLoader(); // Show loader while fetching data for edit
+    showLoader();
     const friendDocRef = doc(db, "friends", friendId);
     const friendDoc = await getDoc(friendDocRef);
 
@@ -340,7 +327,6 @@ window.editFriend = async (friendId) => {
     editAmountPaidInput.value = data.paid;
     editNotesInput.value = data.notes || "";
 
-    // Set the image source for the edit modal, using default if none is set
     editFriendImageDisplay.src = data.image || DEFAULT_FRIEND_IMAGE;
 
     editModal.classList.remove("hidden");
@@ -356,10 +342,11 @@ window.editFriend = async (friendId) => {
       confirmButtonColor: "#dc2626",
     });
   } finally {
-    hideLoader(); // Hide loader after fetching data for edit
+    hideLoader();
   }
 };
 
+/* ───────── Update Friend ───────── */
 updateFriendBtn.onclick = async () => {
   if (!auth.currentUser) {
     Swal.fire({
@@ -407,7 +394,7 @@ updateFriendBtn.onclick = async () => {
   }
 
   try {
-    showLoader(); // Show loader while updating
+    showLoader();
     const friendDocRef = doc(db, "friends", friendId);
 
     await updateDoc(friendDocRef, {
@@ -419,7 +406,7 @@ updateFriendBtn.onclick = async () => {
     });
 
     editModal.classList.add("hidden");
-    loadFriends(); // Refresh list, chart, and most wanted
+    loadFriends();
 
     Swal.fire({
       icon: "success",
@@ -446,11 +433,11 @@ updateFriendBtn.onclick = async () => {
       confirmButtonColor: "#dc2626",
     });
   } finally {
-    hideLoader(); // Hide loader after updating attempt
+    hideLoader();
   }
 };
 
-/* ------- Delete Friend ------- */
+/* ───────── Delete Friend ───────── */
 window.deleteFriend = async (friendId) => {
   if (!auth.currentUser) {
     Swal.fire({
@@ -485,11 +472,11 @@ window.deleteFriend = async (friendId) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        showLoader(); // Show loader while deleting
+        showLoader();
         const friendDocRef = doc(db, "friends", friendId);
         await deleteDoc(friendDocRef);
 
-        loadFriends(); // Refresh list, chart, and most wanted
+        loadFriends();
         Swal.fire({
           icon: "success",
           title: "Deleted!",
@@ -515,58 +502,55 @@ window.deleteFriend = async (friendId) => {
           confirmButtonColor: "#dc2626",
         });
       } finally {
-        hideLoader(); // Hide loader after deleting attempt
+        hideLoader();
       }
     }
   });
 };
 
-/* ------- Load & Render Friends and Update Chart/Most Wanted ------- */
+/* ───────── Load Friends ───────── */
 async function loadFriends(filterName = "") {
-  showLoader(); // Show loader at the beginning of data loading
-  friendListDiv.innerHTML = ""; // Clear existing friend list
+  showLoader();
+  friendListDiv.innerHTML = "";
   let totalDebt = 0;
   let totalPaid = 0;
-  const allFriendsData = []; // To store all friends for sorting for most wanted
+  const allFriendsData = [];
 
   try {
     let q = query(
       collection(db, "friends"),
-      where("uid", "==", auth.currentUser.uid), // Filter by current user's UID
-      orderBy("timestamp", "desc") // Order by timestamp (most recent first)
+      where("uid", "==", auth.currentUser.uid),
+      orderBy("timestamp", "desc")
     );
 
-    const snap = await getDocs(q); // Execute the query
+    const snap = await getDocs(q);
 
     if (snap.empty) {
       friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No friends added yet.</p>`;
       renderDebtChart(0, 0);
-      renderMostWanted([]); // Render empty most wanted list
-      hideLoader(); // Hide loader if no data
+      renderMostWanted([]);
+      hideLoader();
       return;
     }
 
-    let found = false; // Flag to track if any friends match the filter
+    let found = false;
     snap.forEach((doc) => {
-      const friendId = doc.id; // Get the document ID for edit/delete functions
+      const friendId = doc.id;
       const data = doc.data();
       const { name, debt, paid, image, debtPurpose, notes } = data;
 
-      // Accumulate totals for the chart and summary
       totalDebt += debt;
       totalPaid += paid;
 
-      // Add friend data to allFriendsData for Most Wanted calculation
       allFriendsData.push({ id: friendId, ...data });
 
-      // Filter for display in the right panel
       if (
         !filterName ||
         name.toLowerCase().includes(filterName.toLowerCase())
       ) {
         found = true;
         const owes = (debt - paid).toFixed(2);
-        const friendImageSrc = image || DEFAULT_FRIEND_IMAGE; // Use default if 'image' field is missing
+        const friendImageSrc = image || DEFAULT_FRIEND_IMAGE;
 
         friendListDiv.insertAdjacentHTML(
           "beforeend",
@@ -603,14 +587,11 @@ async function loadFriends(filterName = "") {
     if (!found && filterName) {
       friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No matching friends found for "${filterName}".</p>`;
     } else if (!found && !filterName && snap.empty) {
-      // Corrected condition to specifically check for empty snap
       friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No friends added yet.</p>`;
     }
 
-    // Render or update the chart with aggregated data
     renderDebtChart(totalDebt, totalPaid);
 
-    // Render the most wanted list
     renderMostWanted(allFriendsData);
   } catch (error) {
     console.error("Error loading friends:", error);
@@ -624,29 +605,49 @@ async function loadFriends(filterName = "") {
       confirmButtonColor: "#dc2626",
     });
   } finally {
-    hideLoader(); // Always hide loader when data loading is complete (or failed)
+    hideLoader();
   }
 }
 
-/* ------- Chart Rendering Function (Chart.js) ------- */
+/* ───────── Chart.js ───────── */
 function renderDebtChart(totalDebt, totalPaid) {
+  const canvas = document.getElementById("debtChart");
+  const summary = document.getElementById("debtSummary");
+  const noDataImage = document.getElementById("noDataImage");
+
+  const hasData = totalDebt > 0 || totalPaid > 0;
+
+  if (!hasData) {
+    canvas.style.display = "none";
+    summary.style.display = "none";
+    noDataImage.style.display = "block";
+    return;
+  } else {
+    canvas.style.display = "block";
+    summary.style.display = "block";
+    noDataImage.style.display = "none";
+  }
+
   if (debtChart) {
     debtChart.destroy();
   }
 
-  const totalOwed = totalDebt - totalPaid;
+  const totalOwed = Math.max(totalDebt - totalPaid, 0);
 
   const data = {
     labels: ["Total Debt (Lent)", "Total Paid", "Still Owed"],
     datasets: [
       {
-        data: [totalDebt, totalPaid, totalOwed > 0 ? totalOwed : 0],
+        data: [totalDebt, totalPaid, totalOwed],
         backgroundColor: [
-          "#dc2626", // red-600
-          "#22c55e", // green-500
-          "#facc15", // amber-500
+          "rgba(239, 68, 68, 0.8)",
+          "rgba(34, 197, 94, 0.8)",
+          "rgba(250, 204, 21, 0.8)",
         ],
-        hoverOffset: 4,
+        borderColor: "#1f2937",
+        borderWidth: 2,
+        borderRadius: 6,
+        hoverOffset: 6,
       },
     ],
   };
@@ -656,65 +657,66 @@ function renderDebtChart(totalDebt, totalPaid) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
+        position: "bottom",
         labels: {
-          color: "#ffffff",
+          color: "#e5e7eb",
+          font: { size: 14, family: "Inter, sans-serif" },
+          padding: 20,
         },
       },
       tooltip: {
+        backgroundColor: "#111827",
+        titleColor: "#f3f4f6",
+        bodyColor: "#f3f4f6",
+        padding: 12,
         callbacks: {
-          label: function (context) {
-            let label = context.label || "";
-            if (label) {
-              label += ": ";
-            }
-            if (context.parsed !== null) {
-              label += "₱" + context.parsed.toFixed(2);
-            }
-            return label;
-          },
+          label: (context) => `${context.label}: ₱${context.parsed.toFixed(2)}`,
         },
-        backgroundColor: "#27272a",
-        titleColor: "#ffffff",
-        bodyColor: "#ffffff",
       },
     },
   };
 
-  debtChart = new Chart(debtChartCanvas, {
+  debtChart = new Chart(canvas, {
     type: "pie",
     data: data,
     options: options,
   });
 
-  debtSummaryDiv.innerHTML = `
-    <p>Total Debt Lent: <span class="text-red-400 font-bold">₱${totalDebt.toFixed(
-      2
-    )}</span></p>
-    <p>Total Amount Paid: <span class="text-green-400 font-bold">₱${totalPaid.toFixed(
-      2
-    )}</span></p>
-    <p>Total Still Owed: <span class="${
-      totalOwed > 0 ? "text-yellow-400" : "text-green-400"
-    } font-bold">₱${totalOwed.toFixed(2)}</span></p>
+  summary.innerHTML = `
+    <div class="space-y-2 mt-4 text-sm text-gray-200">
+      <p><span class="text-gray-400">Total Debt Lent:</span> <span class="text-red-400 font-semibold">₱${totalDebt.toFixed(
+        2
+      )}</span></p>
+      <p><span class="text-gray-400">Total Amount Paid:</span> <span class="text-green-400 font-semibold">₱${totalPaid.toFixed(
+        2
+      )}</span></p>
+      <p><span class="text-gray-400">Total Still Owed:</span> 
+        <span class="${
+          totalOwed > 0 ? "text-yellow-400" : "text-green-400"
+        } font-semibold">
+          ₱${totalOwed.toFixed(2)}
+        </span>
+      </p>
+    </div>
   `;
 }
 
-/* ------- Render Most Wanted ------- */
+/* ───────── Most Wanted ───────── */
 function renderMostWanted(friends) {
-  mostWantedListDiv.innerHTML = ""; // Clear existing posters
-  noWantedMsg.classList.add("hidden"); // Hide default message initially
+  mostWantedListDiv.innerHTML = "";
+  noWantedMsg.classList.add("hidden");
 
   const debtors = friends
     .map((friend) => ({
       ...friend,
       netOwed: friend.debt - friend.paid,
     }))
-    .filter((friend) => friend.netOwed > 0) // Only show those who owe money
-    .sort((a, b) => b.netOwed - a.netOwed) // Sort by highest net debt
-    .slice(0, 2); // Get top 2
+    .filter((friend) => friend.netOwed > 0)
+    .sort((a, b) => b.netOwed - a.netOwed)
+    .slice(0, 2);
 
   if (debtors.length === 0) {
-    noWantedMsg.classList.remove("hidden"); // Show message if no debtors
+    noWantedMsg.classList.remove("hidden");
     return;
   }
 
