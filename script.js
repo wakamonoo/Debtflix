@@ -26,6 +26,7 @@ const {
 
 /* ------- DOM Elements ------- */
 const loginBtn = document.getElementById("loginBtn");
+const loginTextSpan = document.getElementById("loginText"); // New span for animated text
 const addBtn = document.querySelector(".add");
 const modal = document.getElementById("addModal");
 const closeModalBtn = document.querySelector(".closeModal");
@@ -41,7 +42,7 @@ const updateFriendBtn = document.getElementById("updateFriendBtn");
 const editFriendIdInput = document.getElementById("editFriendId");
 const editFriendImageDisplay = document.getElementById(
   "editFriendImageDisplay"
-); // NEW: For displaying image in edit modal
+);
 
 // Elements for Chart and Summary
 const debtChartCanvas = document.getElementById("debtChart");
@@ -52,12 +53,28 @@ let debtChart; // Variable to hold the Chart.js instance
 const mostWantedListDiv = document.getElementById("mostWantedList");
 const noWantedMsg = document.getElementById("noWantedMsg");
 
+// Loader element
+const loaderOverlay = document.getElementById("loaderOverlay");
+
 // Define a default image path for friends
 const DEFAULT_FRIEND_IMAGE = "images/cat.png";
+
+// Variable to hold the interval for login text animation
+let loginTextInterval;
+
+/* ------- Loader Functions ------- */
+function showLoader() {
+  loaderOverlay.classList.remove("hidden");
+}
+
+function hideLoader() {
+  loaderOverlay.classList.add("hidden");
+}
 
 /* ------- Authentication Flow ------- */
 async function doLogin() {
   try {
+    showLoader(); // Show loader during login process
     await signInWithPopup(auth, provider);
   } catch (e) {
     if (e.code === "auth/popup-blocked") {
@@ -74,18 +91,83 @@ async function doLogin() {
         confirmButtonColor: "#dc2626",
       });
     }
+  } finally {
+    hideLoader(); // Hide loader after login attempt
   }
 }
 
-loginBtn.addEventListener("click", () =>
-  auth.currentUser ? signOut(auth) : doLogin()
-);
+// Function to animate login button text
+function animateLoginText(userName) {
+  let showName = true;
+  loginTextSpan.textContent = userName;
+  loginTextSpan.classList.add("fade-in");
+
+  clearInterval(loginTextInterval); // Clear any existing interval
+
+  loginTextInterval = setInterval(() => {
+    loginTextSpan.classList.remove("fade-in");
+    loginTextSpan.classList.add("fade-out");
+
+    setTimeout(() => {
+      showName = !showName;
+      loginTextSpan.textContent = showName ? userName : "Loguot Here!";
+      loginTextSpan.classList.remove("fade-out");
+      loginTextSpan.classList.add("fade-in");
+    }, 500); // Duration of fade-out animation
+  }, 3000); // Interval for switching text (e.g., every 3 seconds)
+}
+
+loginBtn.addEventListener("click", () => {
+  if (auth.currentUser) {
+    Swal.fire({
+      title: "Are you sure you want to log out?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#4b5563",
+      confirmButtonText: "Yes, logout!",
+      background: "#27272a",
+      color: "#ffffff",
+      iconColor: "#f59e0b",
+      customClass: {
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded",
+        cancelButton:
+          "bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded ml-2",
+      },
+      buttonsStyling: false,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await signOut(auth);
+        Swal.fire({
+          icon: "success",
+          title: "Logged Out",
+          text: "You have been successfully logged out.",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+          background: "#27272a",
+          color: "#ffffff",
+          iconColor: "#22c55e",
+        });
+      }
+    });
+  } else {
+    doLogin();
+  }
+});
 
 onAuthStateChanged(auth, (user) => {
-  loginBtn.textContent = user ? user.displayName.split(" ")[0] : "Login";
   if (user) {
+    const userName = user.displayName.split(" ")[0]; // Get first name
+    animateLoginText(userName); // Start animation
     loadFriends(); // Load friends and update chart and most wanted list
   } else {
+    clearInterval(loginTextInterval); // Stop animation
+    loginTextSpan.textContent = "Login"; // Reset text
+    loginTextSpan.classList.remove("fade-in", "fade-out"); // Remove animation classes
     friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">Please log in to see your Debtflix friends.</p>`;
     renderDebtChart(0, 0); // Clear chart when logged out
     renderMostWanted([]); // Clear most wanted list
@@ -160,6 +242,7 @@ addFriendBtn.onclick = async () => {
   }
 
   try {
+    showLoader(); // Show loader while adding
     await addDoc(collection(db, "friends"), {
       uid: auth.currentUser.uid,
       name,
@@ -204,6 +287,8 @@ addFriendBtn.onclick = async () => {
       iconColor: "#ef4444",
       confirmButtonColor: "#dc2626",
     });
+  } finally {
+    hideLoader(); // Hide loader after adding attempt
   }
 };
 
@@ -227,9 +312,9 @@ window.editFriend = async (friendId) => {
   const editDebtAmountInput = document.getElementById("editDebtAmount");
   const editAmountPaidInput = document.getElementById("editAmountPaid");
   const editNotesInput = document.getElementById("editNotes");
-  // const editFriendImageDisplay = document.getElementById("editFriendImageDisplay"); // Already declared globally
 
   try {
+    showLoader(); // Show loader while fetching data for edit
     const friendDocRef = doc(db, "friends", friendId);
     const friendDoc = await getDoc(friendDocRef);
 
@@ -270,6 +355,8 @@ window.editFriend = async (friendId) => {
       iconColor: "#ef4444",
       confirmButtonColor: "#dc2626",
     });
+  } finally {
+    hideLoader(); // Hide loader after fetching data for edit
   }
 };
 
@@ -320,6 +407,7 @@ updateFriendBtn.onclick = async () => {
   }
 
   try {
+    showLoader(); // Show loader while updating
     const friendDocRef = doc(db, "friends", friendId);
 
     await updateDoc(friendDocRef, {
@@ -357,6 +445,8 @@ updateFriendBtn.onclick = async () => {
       iconColor: "#ef4444",
       confirmButtonColor: "#dc2626",
     });
+  } finally {
+    hideLoader(); // Hide loader after updating attempt
   }
 };
 
@@ -395,6 +485,7 @@ window.deleteFriend = async (friendId) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
+        showLoader(); // Show loader while deleting
         const friendDocRef = doc(db, "friends", friendId);
         await deleteDoc(friendDocRef);
 
@@ -423,6 +514,8 @@ window.deleteFriend = async (friendId) => {
           iconColor: "#ef4444",
           confirmButtonColor: "#dc2626",
         });
+      } finally {
+        hideLoader(); // Hide loader after deleting attempt
       }
     }
   });
@@ -430,89 +523,109 @@ window.deleteFriend = async (friendId) => {
 
 /* ------- Load & Render Friends and Update Chart/Most Wanted ------- */
 async function loadFriends(filterName = "") {
+  showLoader(); // Show loader at the beginning of data loading
   friendListDiv.innerHTML = ""; // Clear existing friend list
   let totalDebt = 0;
   let totalPaid = 0;
   const allFriendsData = []; // To store all friends for sorting for most wanted
 
-  let q = query(
-    collection(db, "friends"),
-    where("uid", "==", auth.currentUser.uid), // Filter by current user's UID
-    orderBy("timestamp", "desc") // Order by timestamp (most recent first)
-  );
+  try {
+    let q = query(
+      collection(db, "friends"),
+      where("uid", "==", auth.currentUser.uid), // Filter by current user's UID
+      orderBy("timestamp", "desc") // Order by timestamp (most recent first)
+    );
 
-  const snap = await getDocs(q); // Execute the query
+    const snap = await getDocs(q); // Execute the query
 
-  if (snap.empty) {
-    friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No friends added yet.</p>`;
-    renderDebtChart(0, 0);
-    renderMostWanted([]); // Render empty most wanted list
-    return;
-  }
-
-  let found = false; // Flag to track if any friends match the filter
-  snap.forEach((doc) => {
-    const friendId = doc.id; // Get the document ID for edit/delete functions
-    const data = doc.data();
-    const { name, debt, paid, image, debtPurpose, notes } = data;
-
-    // Accumulate totals for the chart and summary
-    totalDebt += debt;
-    totalPaid += paid;
-
-    // Add friend data to allFriendsData for Most Wanted calculation
-    allFriendsData.push({ id: friendId, ...data });
-
-    // Filter for display in the right panel
-    if (!filterName || name.toLowerCase().includes(filterName.toLowerCase())) {
-      found = true;
-      const owes = (debt - paid).toFixed(2);
-      const friendImageSrc = image || DEFAULT_FRIEND_IMAGE; // Use default if 'image' field is missing
-
-      friendListDiv.insertAdjacentHTML(
-        "beforeend",
-        `
-        <div class="flex items-center space-x-4 bg-zinc-700 p-4 rounded mb-4 shadow-md">
-          <img src="${friendImageSrc}" alt="${name}" class="w-16 h-16 rounded-full object-cover">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold">${name}</h3>
-            <p class="text-sm text-gray-300">Purpose: ${
-              debtPurpose || "N/A"
-            }</p>
-            <p class="text-sm text-gray-300">Debt: ₱${debt.toFixed(2)}</p>
-            <p class="text-sm text-gray-300">Paid: ₱${paid.toFixed(2)}</p>
-            <p class="text-sm ${
-              owes > 0 ? "text-red-400" : "text-green-400"
-            } font-medium">Owes: ₱${owes}</p>
-            ${
-              notes
-                ? `<p class="text-sm text-gray-400 italic mt-1">Notes: ${notes}</p>`
-                : ""
-            }
-          </div>
-
-          <div class="flex flex-col items-end space-y-2 ml-4">
-            <button onclick="editFriend('${friendId}')" class="text-gray-400 hover:text-white"><i class="fas fa-pen"></i></button>
-            <button onclick="deleteFriend('${friendId}')" class="text-red-400 hover:text-white"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>
-      `
-      );
+    if (snap.empty) {
+      friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No friends added yet.</p>`;
+      renderDebtChart(0, 0);
+      renderMostWanted([]); // Render empty most wanted list
+      hideLoader(); // Hide loader if no data
+      return;
     }
-  });
 
-  if (!found && filterName) {
-    friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No matching friends found for "${filterName}".</p>`;
-  } else if (!found && !filterName && snap.empty) {
-    // Corrected condition to specifically check for empty snap
-    friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No friends added yet.</p>`;
+    let found = false; // Flag to track if any friends match the filter
+    snap.forEach((doc) => {
+      const friendId = doc.id; // Get the document ID for edit/delete functions
+      const data = doc.data();
+      const { name, debt, paid, image, debtPurpose, notes } = data;
+
+      // Accumulate totals for the chart and summary
+      totalDebt += debt;
+      totalPaid += paid;
+
+      // Add friend data to allFriendsData for Most Wanted calculation
+      allFriendsData.push({ id: friendId, ...data });
+
+      // Filter for display in the right panel
+      if (
+        !filterName ||
+        name.toLowerCase().includes(filterName.toLowerCase())
+      ) {
+        found = true;
+        const owes = (debt - paid).toFixed(2);
+        const friendImageSrc = image || DEFAULT_FRIEND_IMAGE; // Use default if 'image' field is missing
+
+        friendListDiv.insertAdjacentHTML(
+          "beforeend",
+          `
+          <div class="flex items-center space-x-4 bg-zinc-700 p-4 rounded mb-4 shadow-md">
+            <img src="${friendImageSrc}" alt="${name}" class="w-16 h-16 rounded-full object-cover">
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold">${name}</h3>
+              <p class="text-sm text-gray-300">Purpose: ${
+                debtPurpose || "N/A"
+              }</p>
+              <p class="text-sm text-gray-300">Debt: ₱${debt.toFixed(2)}</p>
+              <p class="text-sm text-gray-300">Paid: ₱${paid.toFixed(2)}</p>
+              <p class="text-sm ${
+                owes > 0 ? "text-red-400" : "text-green-400"
+              } font-medium">Owes: ₱${owes}</p>
+              ${
+                notes
+                  ? `<p class="text-sm text-gray-400 italic mt-1">Notes: ${notes}</p>`
+                  : ""
+              }
+            </div>
+
+            <div class="flex flex-col items-end space-y-2 ml-4">
+              <button onclick="editFriend('${friendId}')" class="text-gray-400 hover:text-white"><i class="fas fa-pen"></i></button>
+              <button onclick="deleteFriend('${friendId}')" class="text-red-400 hover:text-white"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `
+        );
+      }
+    });
+
+    if (!found && filterName) {
+      friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No matching friends found for "${filterName}".</p>`;
+    } else if (!found && !filterName && snap.empty) {
+      // Corrected condition to specifically check for empty snap
+      friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">No friends added yet.</p>`;
+    }
+
+    // Render or update the chart with aggregated data
+    renderDebtChart(totalDebt, totalPaid);
+
+    // Render the most wanted list
+    renderMostWanted(allFriendsData);
+  } catch (error) {
+    console.error("Error loading friends:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Failed to load friends data. Please try again.",
+      background: "#27272a",
+      color: "#ffffff",
+      iconColor: "#ef4444",
+      confirmButtonColor: "#dc2626",
+    });
+  } finally {
+    hideLoader(); // Always hide loader when data loading is complete (or failed)
   }
-
-  // Render or update the chart with aggregated data
-  renderDebtChart(totalDebt, totalPaid);
-
-  // Render the most wanted list
-  renderMostWanted(allFriendsData);
 }
 
 /* ------- Chart Rendering Function (Chart.js) ------- */
@@ -598,7 +711,7 @@ function renderMostWanted(friends) {
     }))
     .filter((friend) => friend.netOwed > 0) // Only show those who owe money
     .sort((a, b) => b.netOwed - a.netOwed) // Sort by highest net debt
-    .slice(0, 3); // Get top 3
+    .slice(0, 2); // Get top 2
 
   if (debtors.length === 0) {
     noWantedMsg.classList.remove("hidden"); // Show message if no debtors
@@ -610,11 +723,11 @@ function renderMostWanted(friends) {
     mostWantedListDiv.insertAdjacentHTML(
       "beforeend",
       `
-  <div class="wanted-poster">
+  <div class="wanted-poster rounded-lg">
     <h3>Wanted</h3>
     <div class="wanted-divider"></div>
-    <img src="${friendImageSrc}" alt="${debtor.name}" 
-         class="w-20 h-20 mx-auto object-cover mt-1 mb-2">
+    <img src="${friendImageSrc}" alt="${debtor.name}"
+          class="w-20 h-20 mx-auto object-cover mt-1 mb-2">
     <h3>${debtor.name}</h3>
     <p>For: ${debtor.debtPurpose || "Unpaid Debt"}</p>
     <div class="wanted-divider"></div>

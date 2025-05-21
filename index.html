@@ -13,65 +13,156 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-  /* Wanted poster style with paper background */
-  .wanted-poster {
-    border: 1px solid #2c1810;
-    background-image: url("https://freedesignfile.com/upload/2018/05/Crumpled-old-paper-background-vector-01.jpg");
-    background-size: cover;
-    background-position: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    padding: 1rem;
-    margin: 0.5rem;
-    text-align: center; /* Center all inner content */
-  }
+      /* Wanted poster style with paper background */
+      .wanted-poster {
+        border: 1px solid #2c1810;
+        background-image: url("https://freedesignfile.com/upload/2018/05/Crumpled-old-paper-background-vector-01.jpg");
+        background-size: cover;
+        background-position: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        text-align: center; /* Center all inner content */
+      }
 
-  /* Text styling */
-  .wanted-poster h3 {
-    font-family: "Times New Roman", serif;
-    font-weight: 700;
-    color: #2c1810;
-    margin: 0.5rem 0;
-    text-transform: uppercase;
-  }
+      /* Text styling */
+      .wanted-poster h3 {
+        font-family: "Times New Roman", serif;
+        font-weight: 700;
+        color: #2c1810;
+        margin: 0.5rem 0;
+        text-transform: uppercase;
+      }
 
-  .wanted-poster p {
-    font-family: "Courier New", monospace;
-    color: #2c1810;
-    margin: 0.2rem 0;
-    font-size: 0.9rem;
-  }
+      .wanted-poster p {
+        font-family: "Courier New", monospace;
+        color: #2c1810;
+        margin: 0.2rem 0;
+        font-size: 0.9rem;
+      }
 
-  .wanted-reward {
-    font-family: "Times New Roman", serif;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #8b0000 !important; /* Dark red for reward */
-    margin-top: 0.5rem;
-  }
+      .wanted-reward {
+        font-family: "Times New Roman", serif;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #8b0000 !important; /* Dark red for reward */
+        margin-top: 0.5rem;
+      }
 
-  .wanted-divider {
-    border-top: 1px solid #2c1810;
-    margin: 0.5rem 0;
-  }
-</style>
+      .wanted-divider {
+        border-top: 1px solid #2c1810;
+        margin: 0.5rem 0;
+      }
 
+      /* Custom scrollbar hiding (for WebKit browsers like Chrome, Safari, Edge) */
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for WebKit */
+      }
+
+      /* For Firefox */
+      .hide-scrollbar {
+        scrollbar-width: none; /* Hide scrollbar for Firefox */
+      }
+
+      /* Loader styles */
+      .loader-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(
+          0,
+          0,
+          0,
+          0.7
+        ); /* Dark semi-transparent background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 60; /* Above modals but below critical UI */
+      }
+
+      .loader {
+        border: 4px solid #f3f3f3; /* Light grey */
+        border-top: 4px solid #ef4444; /* Red */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Fade animation for login button text */
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fade-out {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+
+      .fade-in {
+        animation: fade-in 0.5s ease-in-out forwards;
+      }
+
+      .fade-out {
+        animation: fade-out 0.5s ease-in-out forwards;
+      }
+
+      /* Added for sticky functionality: ensure sticky element has a background */
+      /* and a z-index if overlapping is a concern */
+      .sticky-header {
+        z-index: 10; /* Ensure it stays above content when sticky */
+        background-color: inherit; /* Inherit the parent's background */
+        /* You might want to define a specific background color if the parent's background is transparent */
+        /* background-color: #27272a; */
+      }
+    </style>
   </head>
 
   <body class="bg-black text-white">
-    <div class="flex flex-col md:flex-row min-h-screen">
-      <div class="md:w-2/3 w-full bg-zinc-900 p-6">
-        <div class="flex justify-between items-center">
+    <div class="flex flex-col md:flex-row md:h-screen relative">
+      <div id="loaderOverlay" class="loader-overlay hidden">
+        <div class="loader"></div>
+      </div>
+
+      <div
+        class="w-full md:w-2/3 bg-zinc-900 p-6 md:flex md:flex-col md:h-full"
+      >
+        <div class="flex justify-between items-center flex-shrink-0">
           <h1 class="text-5xl font-extrabold text-red-600">Debtflix</h1>
           <button
             id="loginBtn"
-            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm relative transition-all duration-500 ease-in-out"
           >
-            Login
+            <span id="loginText">Login</span>
           </button>
         </div>
-        <p class="mt-4 text-gray-300">Friends/Finance: Friendship doesn’t have to be financially awkward.</p>
+        <p class="mt-4 text-gray-300 flex-shrink-0">
+          Friends/Finance: Friendship doesn’t have to be financially awkward.
+        </p>
 
-        <div class="flex flex-col md:flex-row gap-4 mt-8">
+        <div
+          class="flex flex-col md:flex-row gap-4 mt-8 md:flex-1 md:overflow-y-auto md:hide-scrollbar"
+        >
           <div class="p-4 flex-1">
             <h2 class="text-2xl font-bold mb-4 text-red-500">Debt Overview</h2>
             <div class="w-full max-w-sm mx-auto">
@@ -86,7 +177,7 @@
             </h2>
             <div
               id="mostWantedList"
-              class="grid grid-cols-1 md:grid-cols-3 gap-1"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
             ></div>
             <p id="noWantedMsg" class="text-center text-gray-400 mt-4 hidden">
               No notorious debtors... yet!
@@ -95,8 +186,13 @@
         </div>
       </div>
 
-      <div class="md:w-1/3 w-full p-6 bg-zinc-800">
-        <div id="searchAdd" class="flex items-center mb-6 space-x-2">
+      <div
+        class="w-full md:w-1/3 bg-zinc-800 md:flex md:flex-col md:h-full md:overflow-y-auto md:hide-scrollbar"
+      >
+        <div
+          id="searchAdd"
+          class="flex items-center space-x-2 flex-shrink-0 sticky top-0 bg-zinc-800 z-10 px-6 pt-6"
+        >
           <input
             type="text"
             placeholder="Search…"
@@ -115,7 +211,7 @@
           </button>
         </div>
 
-        <div id="friendList"></div>
+        <div id="friendList" class="md:flex-1 px-6 pb-6 mt-4"></div>
       </div>
     </div>
 
