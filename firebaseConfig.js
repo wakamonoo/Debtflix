@@ -2,17 +2,35 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-  getRedirectResult, onAuthStateChanged, signOut
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
-  getFirestore, collection, addDoc,
-  query, where, orderBy, getDocs
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  // === ENSURE THESE ARE CORRECTLY IMPORTED ===
+  updateDoc,
+  deleteDoc,
+  doc, // Needed to create a document reference
+  getDoc, // Needed to fetch a single document
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
-  getStorage, ref, uploadBytes, getDownloadURL
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 /* ── Project values ── */
@@ -22,13 +40,13 @@ const firebaseConfig = {
   projectId: "debtflix-bf0d4",
   storageBucket: "debtflix-bf0d4.appspot.com",
   messagingSenderId: "529410428470",
-  appId: "1:529410428470:web:cc59e62ae02ceb5cf81297"
+  appId: "1:529410428470:web:cc59e62ae02ceb5cf81297",
 };
 
 /* Init */
-const app     = initializeApp(firebaseConfig);
-const auth    = getAuth(app);
-const db      = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 const storage = getStorage(app);
 
 const provider = new GoogleAuthProvider();
@@ -37,10 +55,29 @@ provider.setCustomParameters({ prompt: "select_account" });
 /* Expose everything for script.js */
 window.firebaseApp = {
   /* auth */
-  auth, provider, signInWithPopup, signInWithRedirect,
-  getRedirectResult, onAuthStateChanged, signOut,
+  auth,
+  provider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged,
+  signOut,
   /* firestore */
-  db, collection, addDoc, query, where, orderBy, getDocs,
+  db,
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  // === ENSURE THESE ARE CORRECTLY EXPORTED ===
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDoc,
   /* storage */
-  storage, ref, uploadBytes, getDownloadURL
+  storage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
 };
