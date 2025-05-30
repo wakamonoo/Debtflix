@@ -1,3 +1,9 @@
+// Imgur API client ID
+const IMGUR_CLIENT_ID = "d5f147f0aaaccff"; // Replace with your actual Imgur client ID
+const IMGUR_API_URL = "https://api.imgur.com/3/image";
+const DEFAULT_FRIEND_IMAGE = "images/cat.png";
+const DEFAULT_PROFILE_IMAGE = "images/default-profile.png";
+
 /* ───────── Grab Exports from firebaseConfig.js ───────── */
 const {
   auth,
@@ -41,17 +47,101 @@ const editModal = document.getElementById("editModal");
 const closeEditModalBtn = document.querySelector(".closeEditModal");
 const updateFriendBtn = document.getElementById("updateFriendBtn");
 const editFriendIdInput = document.getElementById("editFriendId");
-const editFriendImageDisplay = document.getElementById(
-  "editFriendImageDisplay"
-);
 const debtChartCanvas = document.getElementById("debtChart");
 const debtSummaryDiv = document.getElementById("debtSummary");
 let debtChart;
 const mostWantedListDiv = document.getElementById("mostWantedList");
 const noWantedMsg = document.getElementById("noWantedMsg");
 const loaderOverlay = document.getElementById("loaderOverlay");
-const DEFAULT_FRIEND_IMAGE = "images/cat.png";
-const DEFAULT_PROFILE_IMAGE = "images/default-profile.png";
+
+// Image upload elements
+const friendImageInput = document.getElementById("friendImage");
+const previewImage = document.getElementById("previewImage");
+const editFriendImageInput = document.getElementById("editFriendImage");
+const editFriendImageDisplay = document.getElementById(
+  "editFriendImageDisplay"
+);
+let selectedImageFile = null;
+let selectedEditImageFile = null;
+
+/* ───────── Image Upload Handling ───────── */
+// Add modal image upload
+friendImageInput.addEventListener("change", function (e) {
+  if (e.target.files && e.target.files[0]) {
+    selectedImageFile = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      previewImage.src = event.target.result;
+    };
+    reader.readAsDataURL(selectedImageFile);
+  }
+});
+
+// Edit modal image upload
+editFriendImageInput.addEventListener("change", function (e) {
+  if (e.target.files && e.target.files[0]) {
+    selectedEditImageFile = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      editFriendImageDisplay.src = event.target.result;
+    };
+    reader.readAsDataURL(selectedEditImageFile);
+  }
+});
+
+// Reset image selection when modals are closed
+closeModalBtn.addEventListener("click", () => {
+  selectedImageFile = null;
+  previewImage.src = DEFAULT_FRIEND_IMAGE;
+  friendImageInput.value = "";
+});
+
+closeEditModalBtn.addEventListener("click", () => {
+  selectedEditImageFile = null;
+  editFriendImageInput.value = "";
+});
+
+/* ───────── Upload Image to Imgur ───────── */
+async function uploadImageToImgur(file) {
+  if (!file) return DEFAULT_FRIEND_IMAGE;
+
+  showLoader();
+
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(IMGUR_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      return data.data.link;
+    } else {
+      throw new Error(data.data.error || "Imgur upload failed");
+    }
+  } catch (error) {
+    console.error("Imgur upload error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Image Upload Failed",
+      text: "Could not upload image. Using default image instead.",
+      background: "#27272a",
+      color: "#ffffff",
+      iconColor: "#ef4444",
+      confirmButtonColor: "#dc2626",
+    });
+    return DEFAULT_FRIEND_IMAGE;
+  } finally {
+    hideLoader();
+  }
+}
 
 /* ───────── Loader ───────── */
 function showLoader() {
@@ -216,6 +306,10 @@ addFriendBtn.onclick = async () => {
 
   try {
     showLoader();
+
+    // Upload image to Imgur if selected
+    const imageUrl = await uploadImageToImgur(selectedImageFile);
+
     await addDoc(collection(db, "friends"), {
       uid: auth.currentUser.uid,
       name,
@@ -223,7 +317,7 @@ addFriendBtn.onclick = async () => {
       debt,
       paid,
       notes,
-      image: DEFAULT_FRIEND_IMAGE,
+      image: imageUrl,
       timestamp: Date.now(),
     });
 
@@ -232,6 +326,9 @@ addFriendBtn.onclick = async () => {
     document.getElementById("debtAmount").value = "";
     document.getElementById("amountPaid").value = "";
     document.getElementById("notes").value = "";
+    previewImage.src = DEFAULT_FRIEND_IMAGE;
+    friendImageInput.value = "";
+    selectedImageFile = null;
 
     modal.classList.add("hidden");
     loadFriends();
@@ -314,6 +411,8 @@ window.editFriend = async (friendId) => {
     editNotesInput.value = data.notes || "";
 
     editFriendImageDisplay.src = data.image || DEFAULT_FRIEND_IMAGE;
+    selectedEditImageFile = null;
+    editFriendImageInput.value = "";
 
     editModal.classList.remove("hidden");
   } catch (error) {
@@ -383,13 +482,29 @@ updateFriendBtn.onclick = async () => {
     showLoader();
     const friendDocRef = doc(db, "friends", friendId);
 
-    await updateDoc(friendDocRef, {
+    // Upload new image if selected
+    let imageUrl = null;
+    if (selectedEditImageFile) {
+      imageUrl = await uploadImageToImgur(selectedEditImageFile);
+    }
+
+    const updateData = {
       name,
       debtPurpose,
       debt,
       paid,
       notes,
-    });
+    };
+
+    // Only update image if a new one was uploaded
+    if (imageUrl) {
+      updateData.image = imageUrl;
+    }
+
+    await updateDoc(friendDocRef, updateData);
+
+    selectedEditImageFile = null;
+    editFriendImageInput.value = "";
 
     editModal.classList.add("hidden");
     loadFriends();
@@ -541,31 +656,35 @@ async function loadFriends(filterName = "") {
         friendListDiv.insertAdjacentHTML(
           "beforeend",
           `
-          <div class="flex items-center space-x-4 bg-zinc-700 p-4 rounded mb-4 shadow-md">
-            <img src="${friendImageSrc}" alt="${name}" class="w-16 h-16 rounded-full object-cover">
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold">${name}</h3>
-              <p class="text-sm text-gray-300">Purpose: ${
-                debtPurpose || "N/A"
-              }</p>
-              <p class="text-sm text-gray-300">Debt: ₱${debt.toFixed(2)}</p>
-              <p class="text-sm text-gray-300">Paid: ₱${paid.toFixed(2)}</p>
-              <p class="text-sm ${
-                owes > 0 ? "text-red-400" : "text-green-400"
-              } font-medium">Owes: ₱${owes}</p>
-              ${
-                notes
-                  ? `<p class="text-sm text-gray-400 italic mt-1">Notes: ${notes}</p>`
-                  : ""
-              }
-            </div>
+                <div class="friend-card flex items-center space-x-4 bg-zinc-700 p-4 rounded mb-4 shadow-md">
+                  <img src="${friendImageSrc}" alt="${name}" class="w-16 h-16 rounded-full object-cover">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-semibold">${name}</h3>
+                    <p class="text-sm text-gray-300">Purpose: ${
+                      debtPurpose || "N/A"
+                    }</p>
+                    <p class="text-sm text-gray-300">Debt: ₱${debt.toFixed(
+                      2
+                    )}</p>
+                    <p class="text-sm text-gray-300">Paid: ₱${paid.toFixed(
+                      2
+                    )}</p>
+                    <p class="text-sm ${
+                      owes > 0 ? "text-red-400" : "text-green-400"
+                    } font-medium">Owes: ₱${owes}</p>
+                    ${
+                      notes
+                        ? `<p class="text-sm text-gray-400 italic mt-1">Notes: ${notes}</p>`
+                        : ""
+                    }
+                  </div>
 
-            <div class="flex flex-col items-end space-y-2 ml-4">
-              <button onclick="editFriend('${friendId}')" class="text-gray-400 hover:text-white"><i class="fas fa-pen"></i></button>
-              <button onclick="deleteFriend('${friendId}')" class="text-red-400 hover:text-white"><i class="fas fa-trash"></i></button>
-            </div>
-          </div>
-        `
+                  <div class="flex flex-col items-end space-y-2 ml-4">
+                    <button onclick="editFriend('${friendId}')" class="text-gray-400 hover:text-white"><i class="fas fa-pen"></i></button>
+                    <button onclick="deleteFriend('${friendId}')" class="text-red-400 hover:text-white"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+              `
         );
       }
     });
@@ -669,22 +788,22 @@ function renderDebtChart(totalDebt, totalPaid) {
   });
 
   summary.innerHTML = `
-    <div class="space-y-2 mt-4 text-sm text-gray-200">
-      <p><span class="text-gray-400">Total Debt Lent:</span> <span class="text-red-400 font-semibold">₱${totalDebt.toFixed(
-        2
-      )}</span></p>
-      <p><span class="text-gray-400">Total Amount Paid:</span> <span class="text-green-400 font-semibold">₱${totalPaid.toFixed(
-        2
-      )}</span></p>
-      <p><span class="text-gray-400">Total Still Owed:</span> 
-        <span class="${
-          totalOwed > 0 ? "text-yellow-400" : "text-green-400"
-        } font-semibold">
-          ₱${totalOwed.toFixed(2)}
-        </span>
-      </p>
-    </div>
-  `;
+          <div class="space-y-2 mt-4 text-sm text-gray-200">
+            <p><span class="text-gray-400">Total Debt Lent:</span> <span class="text-red-400 font-semibold">₱${totalDebt.toFixed(
+              2
+            )}</span></p>
+            <p><span class="text-gray-400">Total Amount Paid:</span> <span class="text-green-400 font-semibold">₱${totalPaid.toFixed(
+              2
+            )}</span></p>
+            <p><span class="text-gray-400">Total Still Owed:</span> 
+              <span class="${
+                totalOwed > 0 ? "text-yellow-400" : "text-green-400"
+              } font-semibold">
+                ₱${totalOwed.toFixed(2)}
+              </span>
+            </p>
+          </div>
+        `;
 }
 
 /* ───────── Most Wanted ───────── */
@@ -711,17 +830,24 @@ function renderMostWanted(friends) {
     mostWantedListDiv.insertAdjacentHTML(
       "beforeend",
       `
-  <div class="wanted-poster rounded-lg">
-    <h3>Wanted</h3>
-    <div class="wanted-divider"></div>
-    <img src="${friendImageSrc}" alt="${debtor.name}"
-          class="w-20 h-20 mx-auto object-cover mt-1 mb-2">
-    <h3>${debtor.name}</h3>
-    <p>For: ${debtor.debtPurpose || "Unpaid Debt"}</p>
-    <div class="wanted-divider"></div>
-    <p class="wanted-reward">₱${debtor.netOwed.toFixed(2)} REWARD</p>
-  </div>
-`
+        <div class="wanted-poster rounded-lg">
+          <h3>Wanted</h3>
+          <div class="wanted-divider"></div>
+          <img src="${friendImageSrc}" alt="${debtor.name}"
+                class="w-20 h-20 mx-auto object-cover mt-1 mb-2 rounded-full">
+          <h3>${debtor.name}</h3>
+          <p>For: ${debtor.debtPurpose || "Unpaid Debt"}</p>
+          <div class="wanted-divider"></div>
+          <p class="wanted-reward">₱${debtor.netOwed.toFixed(2)} REWARD</p>
+        </div>
+      `
     );
   });
 }
+
+// Initialize the app
+document.addEventListener("DOMContentLoaded", () => {
+  // Set default images for modals
+  previewImage.src = DEFAULT_FRIEND_IMAGE;
+  editFriendImageDisplay.src = DEFAULT_FRIEND_IMAGE;
+});

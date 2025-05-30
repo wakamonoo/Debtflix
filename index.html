@@ -142,6 +142,15 @@
           >&times;</span
         >
         <h2 class="text-3xl font-bold mb-4 text-red-500">Add Friend</h2>
+        
+        <!-- Image upload container -->
+        <div class="image-upload-container mb-4">
+          <img id="previewImage" src="images/cat.png" alt="Preview">
+          <input type="file" id="friendImage" accept="image/*">
+          <div class="upload-icon" onclick="document.getElementById('friendImage').click()">
+            <i class="fas fa-camera"></i>
+          </div>
+        </div>
 
         <input
           id="friendName"
@@ -200,12 +209,14 @@
 
         <input type="hidden" id="editFriendId" />
 
-        <img
-          id="editFriendImageDisplay"
-          src="images/cat.png"
-          alt="Friend Image"
-          class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 border-gray-600"
-        />
+        <!-- Edit image upload container -->
+        <div class="image-upload-container mb-4">
+          <img id="editFriendImageDisplay" src="images/cat.png" alt="Friend Image">
+          <input type="file" id="editFriendImage" accept="image/*">
+          <div class="upload-icon" onclick="document.getElementById('editFriendImage').click()">
+            <i class="fas fa-camera"></i>
+          </div>
+        </div>
 
         <input
           id="editFriendName"
