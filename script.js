@@ -1,5 +1,5 @@
-// Imgur API client ID
-const IMGUR_CLIENT_ID = "d5f147f0aaaccff"; // Replace with your actual Imgur client ID
+/* ───────── Imgur Client ID ───────── */
+const IMGUR_CLIENT_ID = "d5f147f0aaaccff"; 
 const IMGUR_API_URL = "https://api.imgur.com/3/image";
 const DEFAULT_FRIEND_IMAGE = "images/cat.png";
 const DEFAULT_PROFILE_IMAGE = "images/default-profile.png";
@@ -53,8 +53,6 @@ let debtChart;
 const mostWantedListDiv = document.getElementById("mostWantedList");
 const noWantedMsg = document.getElementById("noWantedMsg");
 const loaderOverlay = document.getElementById("loaderOverlay");
-
-// Image upload elements
 const friendImageInput = document.getElementById("friendImage");
 const previewImage = document.getElementById("previewImage");
 const editFriendImageInput = document.getElementById("editFriendImage");
@@ -65,7 +63,6 @@ let selectedImageFile = null;
 let selectedEditImageFile = null;
 
 /* ───────── Image Upload Handling ───────── */
-// Add modal image upload
 friendImageInput.addEventListener("change", function (e) {
   if (e.target.files && e.target.files[0]) {
     selectedImageFile = e.target.files[0];
@@ -77,7 +74,7 @@ friendImageInput.addEventListener("change", function (e) {
   }
 });
 
-// Edit modal image upload
+/* ───────── Edit modal upload image ───────── */
 editFriendImageInput.addEventListener("change", function (e) {
   if (e.target.files && e.target.files[0]) {
     selectedEditImageFile = e.target.files[0];
@@ -89,7 +86,6 @@ editFriendImageInput.addEventListener("change", function (e) {
   }
 });
 
-// Reset image selection when modals are closed
 closeModalBtn.addEventListener("click", () => {
   selectedImageFile = null;
   previewImage.src = DEFAULT_FRIEND_IMAGE;
@@ -306,8 +302,6 @@ addFriendBtn.onclick = async () => {
 
   try {
     showLoader();
-
-    // Upload image to Imgur if selected
     const imageUrl = await uploadImageToImgur(selectedImageFile);
 
     await addDoc(collection(db, "friends"), {
@@ -481,8 +475,6 @@ updateFriendBtn.onclick = async () => {
   try {
     showLoader();
     const friendDocRef = doc(db, "friends", friendId);
-
-    // Upload new image if selected
     let imageUrl = null;
     if (selectedEditImageFile) {
       imageUrl = await uploadImageToImgur(selectedEditImageFile);
@@ -496,7 +488,6 @@ updateFriendBtn.onclick = async () => {
       notes,
     };
 
-    // Only update image if a new one was uploaded
     if (imageUrl) {
       updateData.image = imageUrl;
     }
@@ -845,9 +836,7 @@ function renderMostWanted(friends) {
   });
 }
 
-// Initialize the app
 document.addEventListener("DOMContentLoaded", () => {
-  // Set default images for modals
   previewImage.src = DEFAULT_FRIEND_IMAGE;
   editFriendImageDisplay.src = DEFAULT_FRIEND_IMAGE;
 });

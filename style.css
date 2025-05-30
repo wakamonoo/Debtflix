@@ -5,7 +5,7 @@
   background-position: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   padding: 1rem;
-  text-align: center; /* Center all inner content */
+  text-align: center; 
 }
 
 .wanted-poster h3 {
@@ -98,7 +98,6 @@
   background-color: inherit;
 }
 
-/* Add to style.css */
 .flex.items-center.space-x-3 {
   transition: all 0.3s ease;
 }
@@ -107,7 +106,6 @@
   transition: background-color 0.2s ease;
 }
 
-/* Additional styles for image upload */
 .image-upload-container {
   position: relative;
   width: 100px;
