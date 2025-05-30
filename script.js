@@ -26,7 +26,10 @@ const {
 
 /* ───────── DomElements ───────── */
 const loginBtn = document.getElementById("loginBtn");
-const loginTextSpan = document.getElementById("loginText");
+const logoutBtn = document.getElementById("logoutBtn");
+const userProfile = document.getElementById("userProfile");
+const userAvatar = document.getElementById("userAvatar");
+const userName = document.getElementById("userName");
 const addBtn = document.querySelector(".add");
 const modal = document.getElementById("addModal");
 const closeModalBtn = document.querySelector(".closeModal");
@@ -48,7 +51,7 @@ const mostWantedListDiv = document.getElementById("mostWantedList");
 const noWantedMsg = document.getElementById("noWantedMsg");
 const loaderOverlay = document.getElementById("loaderOverlay");
 const DEFAULT_FRIEND_IMAGE = "images/cat.png";
-let loginTextInterval;
+const DEFAULT_PROFILE_IMAGE = "images/default-profile.png";
 
 /* ───────── Loader ───────── */
 function showLoader() {
@@ -84,77 +87,58 @@ async function doLogin() {
   }
 }
 
-function animateLoginText(userName) {
-  let showName = true;
-  loginTextSpan.textContent = userName;
-  loginTextSpan.classList.add("fade-in");
-
-  clearInterval(loginTextInterval);
-
-  loginTextInterval = setInterval(() => {
-    loginTextSpan.classList.remove("fade-in");
-    loginTextSpan.classList.add("fade-out");
-
-    setTimeout(() => {
-      showName = !showName;
-      loginTextSpan.textContent = showName ? userName : "Loguot Here!";
-      loginTextSpan.classList.remove("fade-out");
-      loginTextSpan.classList.add("fade-in");
-    }, 500);
-  }, 3000);
-}
-
-loginBtn.addEventListener("click", () => {
-  if (auth.currentUser) {
-    Swal.fire({
-      title: "Are you sure you want to log out?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#4b5563",
-      confirmButtonText: "Yes, logout!",
-      background: "#27272a",
-      color: "#ffffff",
-      iconColor: "#f59e0b",
-      customClass: {
-        confirmButton:
-          "bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded",
-        cancelButton:
-          "bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded ml-2",
-      },
-      buttonsStyling: false,
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        await signOut(auth);
-        Swal.fire({
-          icon: "success",
-          title: "Logged Out",
-          text: "You have been successfully logged out.",
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-          background: "#27272a",
-          color: "#ffffff",
-          iconColor: "#22c55e",
-        });
-      }
-    });
-  } else {
-    doLogin();
-  }
+logoutBtn.addEventListener("click", () => {
+  Swal.fire({
+    title: "Are you sure you want to log out?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#4b5563",
+    confirmButtonText: "Yes, logout!",
+    background: "#27272a",
+    color: "#ffffff",
+    iconColor: "#f59e0b",
+    customClass: {
+      confirmButton: "bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded",
+      cancelButton:
+        "bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded ml-2",
+    },
+    buttonsStyling: false,
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await signOut(auth);
+      Swal.fire({
+        icon: "success",
+        title: "Logged Out",
+        text: "You have been successfully logged out.",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: "#27272a",
+        color: "#ffffff",
+        iconColor: "#22c55e",
+      });
+    }
+  });
 });
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    const userName = user.displayName.split(" ")[0];
-    animateLoginText(userName);
+    userProfile.classList.remove("hidden");
+    logoutBtn.classList.remove("hidden");
+    loginBtn.classList.add("hidden");
+
+    userAvatar.src = user.photoURL || DEFAULT_PROFILE_IMAGE;
+    userName.textContent = user.displayName.split(" ")[0];
+
     loadFriends();
   } else {
-    clearInterval(loginTextInterval);
-    loginTextSpan.textContent = "Login";
-    loginTextSpan.classList.remove("fade-in", "fade-out");
+    userProfile.classList.add("hidden");
+    logoutBtn.classList.add("hidden");
+    loginBtn.classList.remove("hidden");
+
     friendListDiv.innerHTML = `<p class="text-gray-400 text-center mt-8">Please log in to see your Debtflix friends.</p>`;
     renderDebtChart(0, 0);
     renderMostWanted([]);
@@ -166,6 +150,8 @@ getRedirectResult(auth).catch((err) => {
     console.error("Redirect result error:", err);
   }
 });
+
+loginBtn.addEventListener("click", doLogin);
 
 /* ───────── Modal Handling ───────── */
 addBtn.onclick = () => modal.classList.remove("hidden");

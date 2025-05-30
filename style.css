@@ -97,3 +97,12 @@
   z-index: 10; 
   background-color: inherit; 
 }
+
+/* Add to style.css */
+.flex.items-center.space-x-3 {
+    transition: all 0.3s ease;
+}
+
+#logoutBtn {
+    transition: background-color 0.2s ease;
+}

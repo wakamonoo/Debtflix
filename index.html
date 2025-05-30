@@ -23,15 +23,39 @@
       <div
         class="w-full md:w-2/3 bg-zinc-900 p-6 md:flex md:flex-col md:h-full"
       >
-        <div class="flex justify-between items-center flex-shrink-0">
-          <h1 class="text-5xl font-extrabold text-red-600">Debtflix</h1>
-          <button
-            id="loginBtn"
-            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm relative transition-all duration-500 ease-in-out"
+        <div
+          class="flex flex-col md:flex-row md:justify-between md:items-center flex-shrink-0"
+        >
+          <h1 class="text-5xl font-extrabold text-red-600 mb-4 md:mb-0">
+            Debtflix
+          </h1>
+
+          <div
+            class="flex flex-col md:flex-row md:items-center md:space-x-3 space-y-2 md:space-y-0"
           >
-            <span id="loginText">Login</span>
-          </button>
+            <div id="userProfile" class="hidden flex items-center space-x-2">
+              <img
+                id="userAvatar"
+                class="w-10 h-10 rounded-full object-cover border-2 border-red-600"
+              />
+              <span class="ml-2 text-white">Ready to collect,</span>
+              <span id="userName" class="font-medium text-gray-300"></span>?
+            </div>
+            <button
+              id="logoutBtn"
+              class="hidden bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm"
+            >
+              Logout
+            </button>
+            <button
+              id="loginBtn"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm"
+            >
+              Login
+            </button>
+          </div>
         </div>
+
         <p class="mt-4 text-gray-300 flex-shrink-0">
           Because that one friend always
           <span style="color: #dc2626">forgets</span>
